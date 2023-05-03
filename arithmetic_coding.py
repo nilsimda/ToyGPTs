@@ -2,48 +2,14 @@
 import numpy as np
 
 
-class ArithmeticCoding:
-    def __init__(self, model):
-        self.model = model
+class FloatArithmeticCoding:
+    """Arithmetic coding that maps text to a float number in [0, 1] with
+    the encode() function. Decode() can be used to get the text back. Should
+    not be used for long text as the precision of float numbers is limited,
+    but is very useful for understanding the concept of arithmetic coding."""
 
-    def encode(self, symbols):
-        lb, ub = 0, 1
-        for symbol in symbols:
-            p1, p2 = self.model.predict(symbol)
-            interval = ub - lb
-            ub = lb + interval * p2
-            lb = lb + interval * p1
-
-        """
-        # binary search
-        def _binary_search(low, high):
-            m = (low + high) / 2
-            if m < lb:
-                return "1" + _binary_search(m, high)
-            elif m > ub:
-                return "0" + _binary_search(low, m)
-            return ""
-
-        return _binary_search(0, 1)
-        """
-        return (ub + lb) / 2
-
-    def decode(self, num_encoded, length):
-        lb, ub = 0, 1
-        res = ""
-        for i in range(length):
-            interval = ub - lb
-            c = model.getSymbol((num_encoded - lb) / interval)
-            res += c
-            p1, p2 = model.predict(c)
-            ub = lb + interval * p2
-            lb = lb + interval * p1
-
-        return res
-
-
-class DummyModel:
     def __init__(self, prob_dict):
+        """Initialize the mapping between symbols and probability ranges"""
         ranges = np.cumsum([0] + list(prob_dict.values()))
         self.mapping = {
             k: (ranges[i], ranges[i + 1])
@@ -51,19 +17,50 @@ class DummyModel:
         }
         self.reverse_mapping = {v: k for k, v in self.mapping.items()}
 
-    def predict(self, c):
-        return self.mapping[c]
+    def _getProbas(self, symbol):
+        """Get the probability range of a symbol"""
+        return self.mapping[symbol]
 
-    def getSymbol(self, p):
+    def _getSymbol(self, p):
+        """Get the symbol of a probability range"""
         for k in self.reverse_mapping.keys():
             if k[0] <= p < k[1]:
                 return self.reverse_mapping[k]
 
+    def encode(self, symbols):
+        """Encode a string of symbols to a float number in [0, 1]"""
+        lb, ub = 0, 1
+        for symbol in symbols:
+            p1, p2 = self._getProbas(symbol)
+            interval = ub - lb
+            ub = lb + interval * p2
+            lb = lb + interval * p1
+
+        return (ub + lb) / 2
+
+    def decode(self, num_encoded, length):
+        """Decode a float number in [0, 1] back to a string"""
+        lb, ub = 0, 1
+        res = ""
+        for i in range(length):
+            interval = ub - lb
+            c = self._getSymbol((num_encoded - lb) / interval)
+            res += c
+            p1, p2 = self._getProbas(c)
+            ub = lb + interval * p2
+            lb = lb + interval * p1
+
+        return res
+
+
+class ArithmeticCoding:
+    pass
+
 
 if __name__ == "__main__":
-    model = DummyModel({"H": 0.2, "E": 0.2, "L": 0.4, "O": 0.2})
-    ac = ArithmeticCoding(model)
-    encoded_str = ac.encode("HELLO")
+    ac = FloatArithmeticCoding({"H": 0.2, "E": 0.2, "L": 0.4, "O": 0.2})
+    input_str = "HELLLLLO"
+    encoded_str = ac.encode(input_str)
     print(f"Encoded string: {encoded_str}")
-    decoded_str = ac.decode(encoded_str, 5)
+    decoded_str = ac.decode(encoded_str, len(input_str))
     print(f"Decoded string: {decoded_str}")
