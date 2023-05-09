@@ -1,6 +1,6 @@
 import argparse
 
-from src.arithmetic_coding import FloatArithmeticCoding
+from src.arithmetic_coding import ArithmeticCoding
 from src.model import FixedProbabilityModel
 
 parser = argparse.ArgumentParser(
@@ -24,7 +24,7 @@ parser.add_argument(
 if __name__ == "__main__":
     args = parser.parse_args()
     model = FixedProbabilityModel()
-    coder = FloatArithmeticCoding(model)
+    coder = ArithmeticCoding(model)
     in_file = args.input_file
     if args.decompress:
         dec = coder.decode(f"{in_file}", len("ENCODEME"))

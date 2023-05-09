@@ -1,4 +1,7 @@
 #! /usr/bin/env python3
+import ctypes
+
+
 class FloatArithmeticCoding:
     """Arithmetic coding that maps text to a float number in [0, 1] with
     the encode() function. Decode() can be used to get the text back. Should
@@ -44,13 +47,50 @@ class FloatArithmeticCoding:
 
 
 class ArithmeticCoding:
-    def encode(self, text):
-        ub = 0x0
-        lb = 0xFFFFFFFF
-        for symbol in text:
-            p1, p2 = self._getProbas(symbol)
-            interval = ub - lb
-            ub = lb + interval * p2
-            lb = lb + interval * p1
+    def __init__(self, model):
+        self.model = model
 
-        return (ub + lb) / 2
+    def encode(self, file):
+        pending_bits = 0
+        lb = ctypes.c_uint(0)
+        ub = ctypes.c_uint(0xFFFFFFFF)
+        with open(file, "r") as f, open(f"{file}.cmplm", "w") as out:
+            while True:
+                symbols = f.read(self.model.context_length)
+                if not symbols:
+                    break
+                print(lb, ub)
+                p1, p2 = self.model.getProbas(symbols)
+                p1_numer, p1_denom = p1.as_integer_ratio()
+                p2_numer, p2_denom = p2.as_integer_ratio()
+                interval = ub.value - lb.value + 1
+                ub.value = lb.value + (interval * p2_numer) // p2_denom
+                lb.value = lb.value + (interval * p1_numer) // p1_denom
+                print(f"{lb} {ub}")
+
+                def _write_out(bit):
+                    out.write(str(int(bit)))
+                    nonlocal pending_bits
+                    for _ in range(pending_bits):
+                        out.write(str(int(not bit)))
+                    pending_bits = 0
+
+                while True:
+                    if ub.value < 0x80000000:
+                        _write_out(False)
+                        lb.value <<= 1
+                        ub.value <<= 1
+                        ub.value |= 1
+                    elif lb.value >= 0x80000000:
+                        _write_out(True)
+                        lb.value <<= 1
+                        ub.value <<= 1
+                        ub.value |= 1
+                    elif lb.value >= 0x40000000 and ub.value < 0xC0000000:
+                        pending_bits += 1
+                        lb.value <<= 1
+                        lb.value &= 0x7FFFFFFF
+                        ub.value <<= 1
+                        ub.value |= 0x80000001
+                    else:
+                        break

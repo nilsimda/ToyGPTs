@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 # txt files
+*.cmplm
 *.txt
 
 # C extensions
