@@ -94,3 +94,6 @@ class ArithmeticCoding:
                         ub.value |= 0x80000001
                     else:
                         break
+
+    def decode():
+        pass
