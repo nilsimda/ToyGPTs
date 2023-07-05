@@ -95,5 +95,14 @@ class ArithmeticCoding:
                     else:
                         break
 
-    def decode():
-        pass
+    def decode(self, file):
+        ub = ctypes.c_uint(0xFFFFFFFF)
+        lb = ctypes.c_uint(0)
+        value = ctypes.c_uint(0)
+        with open(file, "r") as f, open(".".join(file.split(".")[:-1]), "w") as out:
+            for _ in range(32):
+                value.value <<= 1
+                value.value += int(f.read(1))
+            while True:
+                interval = ub.value - lb.value + 1
+                m

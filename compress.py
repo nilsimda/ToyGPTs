@@ -1,7 +1,7 @@
 import argparse
 
 from src.arithmetic_coding import ArithmeticCoding
-from src.model import FixedProbabilityModel
+from src.model import GPT2, FixedProbabilityModel
 
 parser = argparse.ArgumentParser(
     prog="CompressGPT",
@@ -23,10 +23,18 @@ parser.add_argument(
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    model = FixedProbabilityModel()
-    coder = ArithmeticCoding(model)
+    model = GPT2()
+    context_input = model.tokenizer("the needs of the many ", return_tensors="pt")
+    print(context_input)
+    next_token_id = model.tokenizer("outweigh ", return_tensors="pt")["input_ids"][0, 0]
+    print(next_token_id)
+    prob = model.getProbas(context_input, next_token_id)
+    print(prob)
+    """
+    coder = (model)
     in_file = args.input_file
     if args.decompress:
         dec = coder.decode(f"{in_file}", len("ENCODEME"))
     else:
         coder.encode(in_file)
+    """

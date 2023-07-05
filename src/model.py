@@ -1,6 +1,8 @@
 import string
 
 import numpy as np
+import torch
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 
 class FixedProbabilityModel:
@@ -22,6 +24,30 @@ class FixedProbabilityModel:
     def getProbas(self, symbol):
         """Get the probability range of a symbol"""
         return self.mapping[symbol]
+
+    def getSymbol(self, p):
+        """Get the symbol of a probability range"""
+        for k in self.reverse_mapping.keys():
+            if k[0] <= p < k[1]:
+                return self.reverse_mapping[k]
+
+
+class GPT2:
+    def __init__(self, context_length=32):
+        self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+        self.model = GPT2LMHeadModel.from_pretrained("gpt2").eval()
+        self.context_length = context_length
+
+    def getProbas(self, context_inputs, next_token_id):
+        """Get the probability range of a symbol"""
+        with torch.no_grad():
+            out = self.model(**context_inputs, labels=context_inputs["input_ids"])
+            probs = out.logits[0, -1, :].squeeze().softmax(dim=0)
+            values, indices = torch.topk(probs, 10)
+            print(values)
+            print(indices)
+            print(self.tokenizer.decode(indices))
+            return probs[next_token_id].item()
 
     def getSymbol(self, p):
         """Get the symbol of a probability range"""
