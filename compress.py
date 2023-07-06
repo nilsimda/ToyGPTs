@@ -24,11 +24,13 @@ parser.add_argument(
 if __name__ == "__main__":
     args = parser.parse_args()
     model = GPT2()
-    context_input = model.tokenizer("the needs of the many ", return_tensors="pt")
-    print(context_input)
-    next_token_id = model.tokenizer("outweigh ", return_tensors="pt")["input_ids"][0, 0]
+    context_ids = model.tokenizer(
+        "how many moons does earth have? ", return_tensors="pt"
+    )["input_ids"]
+    print(context_ids)
+    next_token_id = model.tokenizer("one", return_tensors="pt")["input_ids"][0, 0]
     print(next_token_id)
-    prob = model.getProbas(context_input, next_token_id)
+    prob = model.getProbas(context_ids, next_token_id)
     print(prob)
     """
     coder = (model)

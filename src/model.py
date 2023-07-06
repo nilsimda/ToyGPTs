@@ -41,12 +41,15 @@ class GPT2:
     def getProbas(self, context_inputs, next_token_id):
         """Get the probability range of a symbol"""
         with torch.no_grad():
-            out = self.model(**context_inputs, labels=context_inputs["input_ids"])
-            probs = out.logits[0, -1, :].squeeze().softmax(dim=0)
-            values, indices = torch.topk(probs, 10)
-            print(values)
-            print(indices)
-            print(self.tokenizer.decode(indices))
+            out = self.model(context_inputs)
+            probs = torch.softmax(out.logits[:, -1, :], dim=1)
+            top_10_probs, indices = torch.topk(probs, 10, dim=1)
+            for i in range(10):
+                next_token = self.tokenizer.decode(indices[0, i])
+                probability = top_10_probs[0, i].item()
+                print(f"Next Token {i+1}: {next_token}")
+                print(f"Probability: {probability:.4f}")
+                print()
             return probs[next_token_id].item()
 
     def getSymbol(self, p):
