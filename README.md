@@ -7,4 +7,5 @@ Mark Nelson blog post, but written in python.
 
 ## TODO
 * Decode
-* Integrate GPT
+* Try more than GPT
+* Use NanoGPT instead of HuggingFace Version
