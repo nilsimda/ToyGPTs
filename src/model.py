@@ -13,14 +13,14 @@ class MaskedMultiHeadAttention(nn.Module):
         """
         super().__init__()
         self.n_heads = n_heads
-        self.lin_t = nn.Linear(emb_dim, 3 * emb_dim)
+        self.lin_t = nn.Linear(emb_dim, 3 * emb_dim, bias=False)
         self.proj = nn.Linear(emb_dim, emb_dim)
         self.register_buffer("tril", torch.tril(torch.ones(cl, cl)))
 
     def forward(self, x):
         # Input has Batch (B) and Time (T) and Embedding (C) dimension
         B, T, C = x.shape
-        q, k, v = self.lin_t(x).split(C)
+        q, k, v = self.lin_t(x).split(C, dim=-1)
         # treat the heads as another Batch dimension
         q = q.view(B, T, self.n_heads, C // self.n_heads).transpose(1, 2)
         k = k.view(B, T, self.n_heads, C // self.n_heads).transpose(1, 2)
@@ -33,7 +33,7 @@ class MaskedMultiHeadAttention(nn.Module):
         out = F.softmax(wei, dim=-1) @ v
 
         # concatenate heads
-        out = out.transpose(1, 2).view(B, T, C)
+        out = out.transpose(1, 2).contiguous().view(B, T, C)
         return self.proj(out)
 
 
@@ -66,6 +66,7 @@ class GPT(nn.Module):
     def __init__(self, n_blocks, vocab_size, cl, n_heads, emb_dim):
         super().__init__()
         assert emb_dim % n_heads == 0, "emb_dim not divisible by n_heads"
+        self.cl = cl #needed for generating
         self.token_emb = nn.Embedding(vocab_size, emb_dim)
         self.position_emb = nn.Embedding(cl, emb_dim)
         self.blocks = nn.Sequential(
@@ -73,11 +74,33 @@ class GPT(nn.Module):
         )
         self.lm_head = nn.Linear(emb_dim, vocab_size)
 
-    def forward(self, x):
+    def forward(self, x, targets=None):
         B, T = x.shape
-        x = self.token_emb(x) + self.position_emb(torch.arange(T))
+        x = self.token_emb(x) + self.position_emb(torch.arange(T, device="mps"))
         x = self.blocks(x)
-        return self.lm_head(x)
+        logits = self.lm_head(x)
+
+        # calculate loss if targets are provided
+        if targets == None:
+            loss = None
+        else:
+            logits = logits.view(B*T, -1)
+            targets = targets.view(B*T)
+            loss = F.cross_entropy(logits, targets)
+
+        return logits, loss
+
+    def generate(self, idx, num_tokens=1000):
+        for _ in range(num_tokens):
+            context = idx[:, -self.cl:]
+            logits = self(context)
+            logits, _ = logits[:, -1, :]
+            probs = torch.softmax(logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1)
+            idx = torch.cat((idx, next_token), dim=1)
+        return idx
+
 
     def getProbas(self, x):
-        return F.softmax(self(x), dim=-1)
+        logits, _ = self(x)
+        return F.softmax(logits, dim=-1)

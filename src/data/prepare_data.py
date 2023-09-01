@@ -15,17 +15,15 @@ print(f"Number of chars in the complete works of {author.capitalize()}: {num_cha
 chars = sorted(list(set(data)))
 stoi = {c: i for i, c in enumerate(chars)}
 itos = {i: c for c, i in stoi.items()}
-
 encode = lambda cs: [stoi[c] for c in cs]
-decode = lambda ixs: "".join([itos[i] for i in ixs])
 
 vocab_size = len(chars)
 print(f"Unique chars in dataset: {vocab_size}")
 
 # create train/val split
 n_split = int(0.9 * num_chars)
-trainset = torch.tensor(encode(data[:n_split]), dtype=torch.int32)
-valset = torch.tensor(encode(data[n_split:]), dtype=torch.int32)
+trainset = torch.tensor(encode(data[:n_split]), dtype=torch.long)
+valset = torch.tensor(encode(data[n_split:]), dtype=torch.long)
 
 print(f"Trainset size: {len(trainset):,}")
 print(f"Valset size: {len(valset):,}")
