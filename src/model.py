@@ -28,7 +28,7 @@ class MaskedMultiHeadAttention(nn.Module):
 
         # masked self attention
         wei = q @ k.transpose(-1, -2)
-        wei.masked_fill(self.tril == 0, float("-inf"))
+        wei.masked_fill(self.tril[:T, :T] == 0, float("-inf"))
         wei *= C**-0.5
         out = F.softmax(wei, dim=-1) @ v
 
@@ -39,6 +39,7 @@ class MaskedMultiHeadAttention(nn.Module):
 
 class FeedForward(nn.Module):
     def __init__(self, emb_dim):
+        super().__init__()
         self.linear = nn.Linear(emb_dim, 4 * emb_dim)
         self.gelu = nn.GELU()
         self.proj = nn.Linear(4 * emb_dim, emb_dim)
@@ -50,9 +51,10 @@ class FeedForward(nn.Module):
 
 class TransformerDecoderBlock(nn.Module):
     def __init__(self, cl, n_heads, emb_dim):
-        self.ln1 = nn.LayerNorm()
+        super().__init__()
+        self.ln1 = nn.LayerNorm(emb_dim)
         self.mha = MaskedMultiHeadAttention(cl, n_heads, emb_dim)
-        self.ln2 = nn.LayerNorm()
+        self.ln2 = nn.LayerNorm(emb_dim)
         self.ff = FeedForward(emb_dim)
 
     def forward(self, x):
@@ -62,6 +64,7 @@ class TransformerDecoderBlock(nn.Module):
 
 class GPT(nn.Module):
     def __init__(self, n_blocks, vocab_size, cl, n_heads, emb_dim):
+        super().__init__()
         assert emb_dim % n_heads == 0, "emb_dim not divisible by n_heads"
         self.token_emb = nn.Embedding(vocab_size, emb_dim)
         self.position_emb = nn.Embedding(cl, emb_dim)
