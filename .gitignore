@@ -3,9 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# txt files
+# txt and compressed files
 *.cmplm
 *.txt
+
+# datasets and metadata
+*.pt
+*.pkl
 
 # C extensions
 *.so
