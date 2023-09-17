@@ -23,7 +23,6 @@ def estimate_loss(eval_iters=200):
         losses = torch.zeros(eval_iters)
         for i in range(eval_iters):
             x, y  = get_batch(split)
-            #print(x[:10], y[:10])
             x, y = x.to(device), y.to(device)
             _, loss = gpt(x, y)
             losses[i] = loss.item()
@@ -36,7 +35,7 @@ def train(trainsteps=40_000):
         # forward
         x, y = get_batch("train")
         x, y = x.to(device), y.to(device)
-        logits, loss = gpt(x, y)
+        _, loss = gpt(x, y)
 
         # backward 
         optimizer.zero_grad(set_to_none=True)
