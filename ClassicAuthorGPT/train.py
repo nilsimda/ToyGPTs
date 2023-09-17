@@ -83,4 +83,6 @@ if __name__ == "__main__":
     optimizer = torch.optim.AdamW(gpt.parameters(), lr=1e-5)
 
     train(params["trainsteps"])
+    print("Training finished! Saving model...")
     torch.save(gpt, f"trained_models/{author}_gpt.pth")
+    print("Done!")
