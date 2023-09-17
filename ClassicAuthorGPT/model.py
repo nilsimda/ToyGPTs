@@ -96,8 +96,8 @@ class GPT(nn.Module):
     def generate(self, idx, num_tokens=1000):
         for _ in range(num_tokens):
             context = idx[:, -self.cl:]
-            logits = self(context)
-            logits, _ = logits[:, -1, :]
+            logits, _ = self(context)
+            logits = logits[:, -1, :]
             probs = torch.softmax(logits, dim=-1)
             next_token = torch.multinomial(probs, num_samples=1)
             idx = torch.cat((idx, next_token), dim=1)

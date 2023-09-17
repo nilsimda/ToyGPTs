@@ -30,9 +30,9 @@ print(f"Trainset size: {len(trainset):,}")
 print(f"Valset size: {len(valset):,}")
 
 # save datasets and some metadata to file
-torch.save(trainset, f"./{author}_train.pt")
-torch.save(valset, f"./{author}_val.pt")
+torch.save(trainset, f"data/{author}_train.pt")
+torch.save(valset, f"data/{author}_val.pt")
 
 meta_data = {"vocab_size": vocab_size, "stoi": stoi, "itos": itos}
-with open(f"{author}_meta.pkl", "wb") as f:
+with open(f"data/{author}_meta.pkl", "wb") as f:
     pickle.dump(meta_data, f)

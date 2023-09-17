@@ -77,5 +77,4 @@ if __name__ == "__main__":
     optimizer = torch.optim.AdamW(gpt.parameters(), lr=1e-5)
 
     train(30_000)
-    generated_idx = gpt.generate(torch.zeros((1,1), dtype=torch.long).to(device))[0].tolist()
-    print(decode(generated_idx))
+    torch.save(gpt, f"trained_models/{author}_gpt.pth")
