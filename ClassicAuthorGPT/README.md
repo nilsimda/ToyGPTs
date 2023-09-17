@@ -13,9 +13,9 @@ python3 generate.py shakespeare
 ### Training your own ClassicAuthorGPT
 To train you need to first create the training and validiation set from the full works of the author like so:
 ```
-python3 data/prepare_data.py data/shakesepeare.txt
+python3 prepare_data.py shakespeare
 ```
-If you want to use an author currently not included, just add their full work in a file called `<lastname_author>.txt`
+If you want to use an author currently not included, just add their full work to the `data/` folder in a file called `<lastname_author>.txt`
 
 Now we can train the model by running:
 ```
