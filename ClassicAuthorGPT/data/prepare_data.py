@@ -1,11 +1,12 @@
+import pathlib
 import pickle
 import sys
 
 import torch
 
 # expects the complete works of some author as a text file, e.g shakespear.txt
-filename = sys.argv[1]
-author = filename.split(".")[0]
+filename = pathlib.Path(sys.argv[1])
+author = filename.stem
 with open(filename, "r") as f:
     data = f.read()
 
