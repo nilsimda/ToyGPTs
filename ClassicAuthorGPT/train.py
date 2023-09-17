@@ -79,7 +79,11 @@ if __name__ == "__main__":
 
 
     # define model and optimizer, move model to correct device
-    gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim).to(device)
+    if params["use_pretrained"]:
+        print("Using pretrained model...")
+        gpt = torch.load(f"trained_models/{author}_gpt.pth")
+    else:
+        gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim).to(device)
     optimizer = torch.optim.AdamW(gpt.parameters(), lr=1e-5)
 
     train(params["trainsteps"])
