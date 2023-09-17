@@ -15,7 +15,7 @@ To train you need to first create the training and validiation set from the full
 ```
 python3 data/prepare_data.py data/shakesepeare.txt
 ```
-If you want to use an author currently not included, just add their full work in a file called `<lastname_author>.py`
+If you want to use an author currently not included, just add their full work in a file called `<lastname_author>.txt`
 
 Now we can train the model by running:
 ```
