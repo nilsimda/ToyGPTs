@@ -5,3 +5,4 @@ context_length: 32
 n_heads: 4
 emb_dim: 128
 lr: 1e-5
+trainsteps: 30000

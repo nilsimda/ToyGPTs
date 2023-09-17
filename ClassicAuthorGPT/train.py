@@ -31,7 +31,7 @@ def estimate_loss(eval_iters=200):
     gpt.train()
     return loss_d
 
-def train(trainsteps=40_000):
+def train(trainsteps):
     for step in range(trainsteps):
         # forward
         x, y = get_batch("train")
@@ -82,5 +82,5 @@ if __name__ == "__main__":
     gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim).to(device)
     optimizer = torch.optim.AdamW(gpt.parameters(), lr=1e-5)
 
-    train(30_000)
+    train(params["trainsteps"])
     torch.save(gpt, f"trained_models/{author}_gpt.pth")
