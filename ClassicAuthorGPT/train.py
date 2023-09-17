@@ -3,6 +3,7 @@ import sys
 
 import torch
 import torch.nn.functional as F
+import yaml
 from model import GPT
 
 
@@ -47,8 +48,6 @@ def train(trainsteps=40_000):
             print(f"{step}/{trainsteps} Train Loss: {loss_d['train']:.4f}, Val Loss {loss_d['val']:.4f}")
 
 if __name__ == "__main__":
-    device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
-    print(device)
     # the author to be trained on should be passed
     author = sys.argv[1].lower()
 
@@ -63,13 +62,21 @@ if __name__ == "__main__":
     itos = meta_data["itos"]
     decode = lambda ids: ''.join([itos[i] for i in ids])
 
-    # Some Hyperparameters for the GPT
-    batch_size = 32
-    n_dec_layers = 2
-    context_length = 32
-    n_heads = 4
-    emb_dim = 128
-    lr = 1e-5
+    with open('config.yml' , 'r') as f:
+        params = yaml.safe_load(f)
+
+    # set device from config
+    device = torch.device(params["device"]) 
+    print(f"Using device: {device}")
+
+    # Set Hyperparameters for the GPT from config
+    batch_size = params["batch_size"]
+    n_dec_layers = params["n_dec_layers"]
+    context_length = params["context_length"]
+    n_heads = params["n_heads"]
+    emb_dim = params["emb_dim"]
+    lr = params["lr"]
+
 
     # define model and optimizer, move model to correct device
     gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim).to(device)

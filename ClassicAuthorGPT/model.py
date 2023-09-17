@@ -79,7 +79,7 @@ class GPT(nn.Module):
 
     def forward(self, x, targets=None):
         B, T = x.shape
-        x = self.token_emb(x) + self.position_emb(torch.arange(T, device="mps")) # this sucks
+        x = self.token_emb(x) + self.position_emb(torch.arange(T, device=x.device))
         x = self.blocks(x)
         logits = self.lm_head(x)
 

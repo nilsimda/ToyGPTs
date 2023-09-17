@@ -21,3 +21,5 @@ Now we can train the model by running:
 ```
 python3 train.py shakespeare
 ```
+The `config.yml` file should be used to change the parameters of the training and model. These include the 
+batch size, learning rate, number of decoder layers, number of training steps and a few more. 
