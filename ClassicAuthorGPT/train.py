@@ -3,7 +3,6 @@ import sys
 
 import torch
 import torch.nn.functional as F
-
 from model import GPT
 
 
@@ -24,9 +23,10 @@ def estimate_loss(eval_iters=200):
         losses = torch.zeros(eval_iters)
         for i in range(eval_iters):
             x, y  = get_batch(split)
+            #print(x[:10], y[:10])
             x, y = x.to(device), y.to(device)
             _, loss = gpt(x, y)
-            losses[i] = loss
+            losses[i] = loss.item()
         loss_d[split] = losses.mean()
     gpt.train()
     return loss_d
@@ -45,7 +45,7 @@ def train(trainsteps=40_000):
 
         if step % 10_000 == 0:
             loss_d = estimate_loss()
-            print(f"Train Loss: {loss_d['train']:.4f}, Val Loss {loss_d['val']:.4f}")
+            print(f"{step}/{trainsteps} Train Loss: {loss_d['train']:.4f}, Val Loss {loss_d['val']:.4f}")
 
 if __name__ == "__main__":
     device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
@@ -77,5 +77,5 @@ if __name__ == "__main__":
     optimizer = torch.optim.AdamW(gpt.parameters(), lr=1e-5)
 
     train(30_000)
-    generated_idx = gpt.generate(torch.zeros((1,1), dtype=torch.long))[0].tolist()
+    generated_idx = gpt.generate(torch.zeros((1,1), dtype=torch.long).to(device))[0].tolist()
     print(decode(generated_idx))

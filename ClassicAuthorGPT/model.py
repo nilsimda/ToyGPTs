@@ -26,11 +26,14 @@ class MaskedMultiHeadAttention(nn.Module):
         k = k.view(B, T, self.n_heads, C // self.n_heads).transpose(1, 2)
         v = v.view(B, T, self.n_heads, C // self.n_heads).transpose(1, 2)
 
-        # masked self attention
-        wei = q @ k.transpose(-1, -2)
-        wei.masked_fill(self.tril[:T, :T] == 0, float("-inf"))
-        wei *= C**-0.5
-        out = F.softmax(wei, dim=-1) @ v
+        # use flash attention if pytorch version is high enough
+        if hasattr(F, "scaled_dot_product_attention"):
+            out = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        else:
+            wei = q @ k.transpose(-1, -2)
+            wei.masked_fill(self.tril[:T, :T] == 0, float("-inf"))
+            wei *= C**-0.5
+            out = F.softmax(wei, dim=-1) @ v
 
         # concatenate heads
         out = out.transpose(1, 2).contiguous().view(B, T, C)
