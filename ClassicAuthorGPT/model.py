@@ -102,7 +102,3 @@ class GPT(nn.Module):
             next_token = torch.multinomial(probs, num_samples=1)
             idx = torch.cat((idx, next_token), dim=1)
         return idx
-
-    def getProbas(self, x):
-        logits, _ = self(x)
-        return F.softmax(logits, dim=-1)
