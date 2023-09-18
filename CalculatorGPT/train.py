@@ -1,69 +1,57 @@
 #! /usr/bin/env python3
 import torch
+from model import GPT
 
 
-def encode(num1, num2, op, res=None):
-    # encode symbols
-    op_enc = torch.tensor(stoi[op], dtype=torch.long).view(1)
-    equals_enc = torch.tensor(stoi['='], dtype=torch.long).view(1)
-
-    # encode input numbers (left pad with zeros until num_digits)
-    def _encode_num(num, num_digits, reverse=False):
-        if reverse:
-            out = torch.tensor([int(digit) for digit in reversed(str(num).zfill(num_digits))], dtype=torch.long)
-        else:
-            out = torch.tensor([int(digit) for digit in str(num).zfill(num_digits)], dtype=torch.long)
-        return out
-
-    num1_enc = _encode_num(num1, max_digits)
-    num2_enc = _encode_num(num2, max_digits)
-
-    if res == None:
-        out = torch.cat([num1_enc, op_enc, num2_enc, equals_enc])
-    else:
-        res_enc = _encode_num(res, 2*max_digits, True)
-        out = torch.cat([num1_enc, op_enc, num2_enc, equals_enc, res_enc])
-
+@torch.no_grad()
+def estimate_loss(model, eval_iters):
+    out = {}
+    model.eval()
+    for split in ['train', 'val']:
+        losses = torch.zeros(eval_iters)
+        for k in range(eval_iters):
+            if split == 'train':
+                idx = torch.randint(0, len(x_train), (batch_size, ))
+                X, Y = x_train[idx], y_train[idx]
+            elif split == 'val':
+                idx = torch.randint(0, len(x_val), (batch_size, ))
+                X, Y = x_val[idx], y_val[idx]
+            _, loss = model(X, Y)
+            losses[k] = loss.item()
+        out[split] = losses.mean()
+    model.train()
     return out
 
-def decode(x):
-    out = []
-    for idx in x:
-        if idx < 10: out.append(str(idx.item())) # if its a digit just add it as a str
-        elif idx == stoi['<END>']: break # END token means we are done
-        else: out.append(itos[idx.item()]) # otherwise encode op
+def train_gpt(model, optimizer, train_steps=100_000, eval_iters=200):
+    for step in range(train_steps):
+        # forward pass
+        idx = torch.randint(0, len(x_train), (batch_size,))
+        x, y = x_train[idx], y_train[idx]
+        _, loss = model(x, y)
 
-    out =  "".join(out)
-    out = out[:-2*max_digits] + out[:(-2*max_digits)-1:-1] # reverse the result
-    return out
+        # backward pass
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        optimizer.step()
 
-# we sample two random numbers as input and their sum as the label
-def sample_mathproblems(num_problems): 
-    ops = torch.randint(10, 12, (num_problems, ), dtype=torch.long)
-    all_nums = torch.randint(0, 10**max_digits, (num_problems, 2), dtype=torch.long)
-    
-    x = torch.zeros((num_problems, context_length), dtype=torch.long)
-
-    for i, (nums, op) in enumerate(zip(all_nums, ops)):
-        num1, num2 = nums[0].item(), nums[1].item()
-        op_c = itos[op.item()]
-        match op_c:
-            case '+':
-                res = num1 + num2
-            case '-':
-                if num2 > num1: num1, num2 = num2, num1 #swap because we dont want negative numbers
-                res = num1 - num2
-        x[i] = encode(num1, num2, op_c, res)
-
-    input_size = 2*max_digits+2
-    masked_loss = -100 * torch.ones((num_problems, input_size-1), dtype=torch.long)
-    end_token = stoi['<END>'] * torch.ones((num_problems, 1), dtype=torch.long)
-    y = torch.cat([masked_loss, x[:, input_size:], end_token], dim=1)
-    return x, y
-
+        if step % 10_000 == 0:
+            losses = estimate_loss(model, eval_iters) 
+            train_loss = losses['train']
+            val_loss = losses['val']
+            print(f"{step}/{train_steps} - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
 
 if __name__ == "__main__":
-    max_digits = 3
-    context_length = 10
-    stoi = {'+': 10, '-':11, '=': 14, '<END>':15}
-    itos = {i: op for op, i in stoi.items()}
+    batch_size = 32
+    n_blocks = 2
+    vocab_size = 16
+    n_heads = 4
+    emb_dim = 128
+
+    x_train = torch.load('data/x_train.pt')
+    y_train = torch.load('data/y_train.pt')
+
+    x_val = torch.load('data/x_val.pt')
+    y_val = torch.load('data/y_val.pt')
+    
+    gpt = GPT(n_blocks, vocab_size, n_heads, emb_dim)
+    train_gpt(gpt, torch.optim.AdamW(gpt.parameters(), lr=1e-5))
