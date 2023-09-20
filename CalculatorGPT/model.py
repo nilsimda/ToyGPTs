@@ -96,12 +96,14 @@ class GPT(nn.Module):
 
         return logits, loss
 
-    def generate(self, idx, num_tokens=1000):
-        for _ in range(num_tokens):
-            context = idx[:, -self.cl:]
+    def calculate(self, idx, max_tokens=100):
+        for _ in range(max_tokens): # just to make sure we dont run into infinite loop if model fails to end its output
+            context = idx[:, -self.cl]
             logits, _ = self(context)
             logits = logits[:, -1, :]
             probs = torch.softmax(logits, dim=-1)
-            next_token = torch.multinomial(probs, num_samples=1)
+            next_token = torch.argmax(probs, keepdim=True) # use argmax instead of multinomial, there is only one correct answer
             idx = torch.cat((idx, next_token), dim=1)
+            if next_token == 15:
+                break
         return idx
