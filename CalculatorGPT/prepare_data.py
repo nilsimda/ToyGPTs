@@ -62,6 +62,19 @@ def sample_mathproblems(num_problems):
 
 if __name__ == "__main__":
     max_digits = 6
-    context_length = 2 * max_digits + 2 * max_digits + 3 # two numbers, one result (can be 2*max when multiplied), one operator, one equals, one end token
+    num_problems = 100_000
+    context_length = 2 * max_digits + 2 * max_digits + 2 # two numbers, one result (can be 2*max when multiplied), one operator, one equals
     stoi = {'+': 10, '-':11, '=': 14, '<END>':15}
     itos = {i: op for op, i in stoi.items()}
+
+    val_size = 0.9
+    x, y = sample_mathproblems(num_problems)
+    x_train, y_train = x[:int(num_problems*val_size)], y[:int(num_problems*val_size)]
+    x_val, y_val = x[int(num_problems*val_size):], y[int(num_problems*val_size):]
+
+    # save data
+    torch.save(x_train, 'data/x_train.pt')
+    torch.save(y_train, 'data/y_train.pt')
+    torch.save(x_val, 'data/x_val.pt')
+    torch.save(y_val, 'data/y_val.pt')
+

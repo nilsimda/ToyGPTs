@@ -46,6 +46,7 @@ if __name__ == "__main__":
     vocab_size = 16
     n_heads = 4
     emb_dim = 128
+    context_length = 2 * 6 + 2 * 6 + 2 # two numbers, one result (can be 2*max when multiplied), one operator, one equals
 
     x_train = torch.load('data/x_train.pt')
     y_train = torch.load('data/y_train.pt')
@@ -53,5 +54,9 @@ if __name__ == "__main__":
     x_val = torch.load('data/x_val.pt')
     y_val = torch.load('data/y_val.pt')
     
-    gpt = GPT(n_blocks, vocab_size, n_heads, emb_dim)
+    gpt = GPT(n_blocks, vocab_size, context_length, n_heads, emb_dim)
     train_gpt(gpt, torch.optim.AdamW(gpt.parameters(), lr=1e-5))
+
+    print("Training finished! Saving model...")
+    torch.save(gpt, f"trained_models/calculator_plus_minus_gpt.pth")
+    print("Done!")
