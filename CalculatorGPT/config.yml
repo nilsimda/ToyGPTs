@@ -1,9 +1,9 @@
 device: "mps" # cuda or cpu also possible
-batch_size: 64
+batch_size: 128
 n_dec_layers: 2
 context_length: 32
 n_heads: 4
 emb_dim: 128
-lr: 1e-5
-trainsteps: 50000
-use_pretrained: True # if set to true the other model params are ignored
+lr: 1e-3
+trainsteps: 500000
+use_pretrained: False # if set to true the other model params are ignored

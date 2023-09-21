@@ -67,6 +67,8 @@ if __name__ == "__main__":
         gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim)
     gpt.to(device)
     optimizer = torch.optim.AdamW(gpt.parameters(), lr=lr)
+    n_params = sum(p.numel() for p in gpt.parameters() if p.requires_grad)
+    print(f"Training a GPT with {n_params:,} parameters...")
     train_gpt(gpt, optimizer, train_steps=params['trainsteps'])
 
     print("Training finished! Saving model...")
