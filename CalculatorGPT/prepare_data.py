@@ -1,14 +1,12 @@
+import argparse
 import os
+import pickle
 import re
-import sys
 
 import torch
 
-max_digits = 6
-stoi = {'+': 10, '-':11, '*': 12, '/': 13, '=': 14, '<END>':15}
-itos = {i: op for op, i in stoi.items()}
 
-def encode(prob_str):
+def encode(prob_str, stoi, max_digits):
     pattern = r'(\d+)([+\-*\/])(\d+)=(\d*)'
     matches = re.match(pattern, prob_str)
 
@@ -41,7 +39,7 @@ def encode(prob_str):
 
     return out
 
-def decode(x):
+def decode(x, stoi, itos, max_digits):
     out = []
     for idx in x:
         if idx < 10: out.append(str(idx.item())) # if its a digit just add it as a str
@@ -79,7 +77,18 @@ def sample_mathproblems(num_problems):
     return x, y
 
 if __name__ == "__main__":
-    num_problems = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_problems', type=int, default=100_000)
+    parser.add_argument('--max_digits', type=int, default=6)
+    parser.add_argument('--ops', type=str, default='+-*/')
+
+
+    stoi = {'+': 10, '-':11, '*': 12, '/': 13, '=': 14, '<END>':15}
+    itos = {i: op for op, i in stoi.items()}
+
+    args = parser.parse_args()
+    num_problems = args.num_problems
+    max_digits = args.max_digits
     context_length = 2 * max_digits + 2 * max_digits + 2 # two numbers, one result (can be 2*max when multiplied), one operator, one equals
 
     val_size = 0.9
@@ -88,12 +97,16 @@ if __name__ == "__main__":
     x_val, y_val = x[int(num_problems*val_size):], y[int(num_problems*val_size):]
 
     print(f"Created trainset of size {len(x_train)}")
-    print(f"Created valset of size {len(x_train)}")
+    print(f"Created valset of size {len(x_val)}")
 
     # save data
-    os.mkdir('data', exist_ok=True)
+    os.makedirs('data', exist_ok=True)
     torch.save(x_train, 'data/x_train.pt')
     torch.save(y_train, 'data/y_train.pt')
     torch.save(x_val, 'data/x_val.pt')
     torch.save(y_val, 'data/y_val.pt')
+
+    meta_data = {"max_digits": max_digits, "stoi": stoi, "itos": itos}
+    with open(f"data/meta.pkl", "wb") as f:
+        pickle.dump(meta_data, f)
 

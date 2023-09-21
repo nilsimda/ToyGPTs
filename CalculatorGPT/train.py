@@ -53,7 +53,7 @@ if __name__ == "__main__":
     n_heads = params['n_heads']
     emb_dim = params['emb_dim']
     context_length = 2 * 6 + 2 * 6 + 2 # two numbers, one result (can be 2*max when multiplied), one operator, one equals
-    lr = params['lr']
+    lr = float(params['lr'])
 
     x_train = torch.load('data/x_train.pt')
     y_train = torch.load('data/y_train.pt')
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     x_val = torch.load('data/x_val.pt')
     y_val = torch.load('data/y_val.pt')
     
-    if params['pretrained']:
+    if params['use_pretrained']:
         gpt = torch.load("trained_models/calculator_gpt.pth")
     else:
         gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim)
