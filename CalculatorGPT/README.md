@@ -10,8 +10,12 @@ Install the ToyGPT Repo cd into CalculatorGPT and run:
 ```
 python3 calculate.py 
 ```
+This allows you to input a two number arithmetic problem like 
+`10092 - 456` and the GPT will calculate the result.
 ### Training your own
 Training your own Calculator is also possible with:
 ```
-python3 train.py
+python3 prepare_data.py 100000 # number of samples in dataset
+python3 train.py 
 ```
+You can specify parameters of the model and training throught the `config.yml` file.
