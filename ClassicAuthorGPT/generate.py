@@ -15,5 +15,6 @@ if __name__ == '__main__':
     decode = lambda ids: ''.join([itos[i] for i in ids])
 
     gpt = torch.load(f"trained_models/{author}_gpt.pth")
-    generated_idx = gpt.generate(torch.zeros((1,1), dtype=torch.long).to(gpt.device))[0].tolist()
+    gpt.to("cpu")
+    generated_idx = gpt.generate(torch.zeros((1,1), dtype=torch.long))[0].tolist()
     print(decode(generated_idx))

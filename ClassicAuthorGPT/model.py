@@ -96,6 +96,7 @@ class GPT(nn.Module):
     def generate(self, idx, num_tokens=1000):
         for _ in range(num_tokens):
             context = idx[:, -self.cl:]
+            print(idx.shape, context.shape, self.cl)
             logits, _ = self(context)
             logits = logits[:, -1, :]
             probs = torch.softmax(logits, dim=-1)
