@@ -71,6 +71,7 @@ def sample_mathproblems(num_problems, allowed_ops):
                 res = num1 * num2
             case '/':
                 if num2 > num1: num1, num2 = num2, num1
+                if num2 == 0: num2 = 1
                 res = num1 // num2
         x[i] = encode(f"{num1}{op_c}{num2}={res}", stoi, max_digits)
 
