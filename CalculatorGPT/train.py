@@ -61,11 +61,14 @@ if __name__ == "__main__":
     x_val = torch.load('data/x_val.pt')
     y_val = torch.load('data/y_val.pt')
     
-    gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim)
+    if params['pretrained']:
+        gpt = torch.load("trained_models/calculator_gpt.pth")
+    else:
+        gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim)
     gpt.to(device)
     optimizer = torch.optim.AdamW(gpt.parameters(), lr=lr)
     train_gpt(gpt, optimizer, train_steps=params['trainsteps'])
 
     print("Training finished! Saving model...")
-    torch.save(gpt, f"trained_models/calculator_plus_minus_gpt.pth")
+    torch.save(gpt, f"trained_models/calculator_gpt.pth")
     print("Done!")

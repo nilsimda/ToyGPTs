@@ -98,7 +98,7 @@ class GPT(nn.Module):
 
     def calculate(self, idx, max_tokens=100):
         for _ in range(max_tokens): # just to make sure we dont run into infinite loop if model fails to end its output
-            context = idx[:, -self.cl]
+            context = idx[:, -self.cl:]
             logits, _ = self(context)
             logits = logits[:, -1, :]
             probs = torch.softmax(logits, dim=-1)

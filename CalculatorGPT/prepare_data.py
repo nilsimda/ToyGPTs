@@ -1,7 +1,11 @@
 import re
+import sys
 
 import torch
 
+max_digits = 6
+stoi = {'+': 10, '-':11, '*': 12, '/': 13, '=': 14, '<END>':15}
+itos = {i: op for op, i in stoi.items()}
 
 def encode(prob_str):
     pattern = r'(\d+)([+\-*\/])(\d+)=(\d*)'
@@ -74,16 +78,16 @@ def sample_mathproblems(num_problems):
     return x, y
 
 if __name__ == "__main__":
-    max_digits = 6
-    num_problems = 100_000
+    num_problems = sys.argv[1]
     context_length = 2 * max_digits + 2 * max_digits + 2 # two numbers, one result (can be 2*max when multiplied), one operator, one equals
-    stoi = {'+': 10, '-':11, '*': 12, '/': 13, '=': 14, '<END>':15}
-    itos = {i: op for op, i in stoi.items()}
 
     val_size = 0.9
     x, y = sample_mathproblems(num_problems)
     x_train, y_train = x[:int(num_problems*val_size)], y[:int(num_problems*val_size)]
     x_val, y_val = x[int(num_problems*val_size):], y[int(num_problems*val_size):]
+
+    print(f"Created trainset of size {len(x_train)}")
+    print(f"Created valset of size {len(x_train)}")
 
     # save data
     torch.save(x_train, 'data/x_train.pt')
