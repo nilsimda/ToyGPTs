@@ -1,7 +1,18 @@
+import re
+
 import torch
 
 
-def encode(num1, num2, op, res=None):
+def encode(prob_str):
+    pattern = r'(\d+)([+\-*\/])(\d+)=(\d*)'
+    matches = re.match(pattern, prob_str)
+
+    num1 = int(matches.group(1))
+    op = matches.group(2)
+    num2 = int(matches.group(3))
+    res = matches.group(4)
+    res = None if res == "" else int(res)
+
     # encode symbols
     op_enc = torch.tensor(stoi[op], dtype=torch.long).view(1)
     equals_enc = torch.tensor(stoi['='], dtype=torch.long).view(1)
@@ -17,7 +28,7 @@ def encode(num1, num2, op, res=None):
     num1_enc = _encode_num(num1, max_digits)
     num2_enc = _encode_num(num2, max_digits)
 
-    if res == None:
+    if res is None:
         out = torch.cat([num1_enc, op_enc, num2_enc, equals_enc])
     else:
         res_enc = _encode_num(res, 2*max_digits, True)
@@ -38,7 +49,7 @@ def decode(x):
 
 # we sample two random numbers as input and their sum as the label
 def sample_mathproblems(num_problems): 
-    ops = torch.randint(10, 12, (num_problems, ), dtype=torch.long)
+    ops = torch.randint(10, 13, (num_problems, ), dtype=torch.long)
     all_nums = torch.randint(0, 10**max_digits, (num_problems, 2), dtype=torch.long)
     
     x = torch.zeros((num_problems, context_length), dtype=torch.long)
@@ -52,7 +63,9 @@ def sample_mathproblems(num_problems):
             case '-':
                 if num2 > num1: num1, num2 = num2, num1 #swap because we dont want negative numbers
                 res = num1 - num2
-        x[i] = encode(num1, num2, op_c, res)
+            case '*':
+                res = num1 * num2
+        x[i] = encode(f"{num1}{op_c}{num2}={res}")
 
     input_size = 2 * max_digits + 2 # two numbers, one operator, one equals
     masked_loss = -100 * torch.ones((num_problems, input_size-1), dtype=torch.long)
@@ -64,7 +77,7 @@ if __name__ == "__main__":
     max_digits = 6
     num_problems = 100_000
     context_length = 2 * max_digits + 2 * max_digits + 2 # two numbers, one result (can be 2*max when multiplied), one operator, one equals
-    stoi = {'+': 10, '-':11, '=': 14, '<END>':15}
+    stoi = {'+': 10, '-':11, '*': 12, '/': 13, '=': 14, '<END>':15}
     itos = {i: op for op, i in stoi.items()}
 
     val_size = 0.9
