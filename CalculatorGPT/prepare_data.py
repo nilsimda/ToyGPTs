@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 
@@ -90,6 +91,7 @@ if __name__ == "__main__":
     print(f"Created valset of size {len(x_train)}")
 
     # save data
+    os.mkdir('data', exist_ok=True)
     torch.save(x_train, 'data/x_train.pt')
     torch.save(y_train, 'data/y_train.pt')
     torch.save(x_val, 'data/x_val.pt')
