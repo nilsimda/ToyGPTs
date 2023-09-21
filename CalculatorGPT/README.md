@@ -15,7 +15,7 @@ This allows you to input a two number arithmetic problem like
 ### Training your own
 Training your own Calculator is also possible with:
 ```
-python3 prepare_data.py 100000 # number of samples in dataset
+python3 prepare_data.py 
 python3 train.py 
 ```
-You can specify parameters of the model and training throught the `config.yml` file.
+You can specify parameters of the model and training through the `config.yml` file. 

@@ -51,8 +51,9 @@ def decode(x, stoi, itos, max_digits):
     return out
 
 # we sample two random numbers as input and their sum as the label
-def sample_mathproblems(num_problems): 
-    ops = torch.randint(10, 13, (num_problems, ), dtype=torch.long)
+def sample_mathproblems(num_problems, allowed_ops): 
+    ops_idx = (stoi[op] for op in allowed_ops)
+    ops = torch.randint(min(ops_idx), max(ops_idx)+1, (num_problems, ), dtype=torch.long)
     all_nums = torch.randint(0, 10**max_digits, (num_problems, 2), dtype=torch.long)
     
     x = torch.zeros((num_problems, context_length), dtype=torch.long)
@@ -68,7 +69,7 @@ def sample_mathproblems(num_problems):
                 res = num1 - num2
             case '*':
                 res = num1 * num2
-        x[i] = encode(f"{num1}{op_c}{num2}={res}")
+        x[i] = encode(f"{num1}{op_c}{num2}={res}", stoi, max_digits)
 
     input_size = 2 * max_digits + 2 # two numbers, one operator, one equals
     masked_loss = -100 * torch.ones((num_problems, input_size-1), dtype=torch.long)
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     context_length = 2 * max_digits + 2 * max_digits + 2 # two numbers, one result (can be 2*max when multiplied), one operator, one equals
 
     val_size = 0.9
-    x, y = sample_mathproblems(num_problems)
+    x, y = sample_mathproblems(num_problems, args.ops)
     x_train, y_train = x[:int(num_problems*val_size)], y[:int(num_problems*val_size)]
     x_val, y_val = x[int(num_problems*val_size):], y[int(num_problems*val_size):]
 
