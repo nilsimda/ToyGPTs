@@ -34,7 +34,7 @@ def encode(prob_str, stoi, max_digits):
     if res is None:
         out = torch.cat([num1_enc, op_enc, num2_enc, equals_enc])
     else:
-        res_enc = _encode_num(res, 2*max_digits, True)
+        res_enc = _encode_num(res, 2*max_digits)
         out = torch.cat([num1_enc, op_enc, num2_enc, equals_enc, res_enc])
 
     return out
@@ -52,7 +52,7 @@ def decode(x, stoi, itos, max_digits):
 
 # we sample two random numbers as input and their sum as the label
 def sample_mathproblems(num_problems, allowed_ops): 
-    ops_idx = (stoi[op] for op in allowed_ops)
+    ops_idx = [stoi[op] for op in allowed_ops]
     ops = torch.randint(min(ops_idx), max(ops_idx)+1, (num_problems, ), dtype=torch.long)
     all_nums = torch.randint(0, 10**max_digits, (num_problems, 2), dtype=torch.long)
     
@@ -69,6 +69,9 @@ def sample_mathproblems(num_problems, allowed_ops):
                 res = num1 - num2
             case '*':
                 res = num1 * num2
+            case '/':
+                if num2 > num1: num1, num2 = num2, num1
+                res = num1 // num2
         x[i] = encode(f"{num1}{op_c}{num2}={res}", stoi, max_digits)
 
     input_size = 2 * max_digits + 2 # two numbers, one operator, one equals
