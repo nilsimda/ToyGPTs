@@ -34,7 +34,7 @@ def encode(prob_str, stoi, max_digits):
     if res is None:
         out = torch.cat([num1_enc, op_enc, num2_enc, equals_enc])
     else:
-        res_enc = _encode_num(res, 2*max_digits)
+        res_enc = _encode_num(res, 2*max_digits) if op == '/' else _encode_num(res, 2*max_digits, reverse=True)
         out = torch.cat([num1_enc, op_enc, num2_enc, equals_enc, res_enc])
 
     return out

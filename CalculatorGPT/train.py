@@ -34,6 +34,7 @@ def train_gpt(model, optimizer, train_steps=100_000, eval_iters=200):
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
+        scheduler.step()
 
         if step % 10_000 == 0:
             losses = estimate_loss(model, eval_iters) 
@@ -67,6 +68,7 @@ if __name__ == "__main__":
         gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim)
     gpt.to(device)
     optimizer = torch.optim.AdamW(gpt.parameters(), lr=lr)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, params['trainsteps'])
     n_params = sum(p.numel() for p in gpt.parameters() if p.requires_grad)
     print(f"Training a GPT with {n_params:,} parameters...")
     train_gpt(gpt, optimizer, train_steps=params['trainsteps'])
