@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# txt and compressed files
+*.cmplm
+*.txt
+
 # datasets and metadata
 *.pt
 *.pkl
@@ -164,6 +168,3 @@ cython_debug/
 #.idea/
 # Vscode specific
 .vscode/
-
-# Mac
-.DS_Store

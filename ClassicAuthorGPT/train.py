@@ -84,7 +84,8 @@ if __name__ == "__main__":
         gpt = torch.load(f"trained_models/{author}_gpt.pth")
     else:
         gpt = GPT(n_dec_layers, vocab_size, context_length, n_heads, emb_dim).to(device)
-    optimizer = torch.optim.AdamW(gpt.parameters(), lr=1e-5)
+    optimizer = torch.optim.AdamW(gpt.parameters(), lr=lr)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, params["trainsteps"])
 
     train(params["trainsteps"])
     print("Training finished! Saving model...")
